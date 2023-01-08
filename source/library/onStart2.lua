@@ -1,3 +1,4 @@
+-- library.onStart(2)
 --[[ TimeScript by Jericho (github.com/Jericho1060) ]]
 --[[ snagged from LocuraDU (https://github.com/LocuraDU) ]]
 function epochTime()

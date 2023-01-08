@@ -2,13 +2,13 @@
 wss_software ={}
 wss_software.id = "xfer_unit_auto_scanner"
 wss_software.title = "Transfer Unit Auto-Scanner / Auto-Balancer"
-wss_software.version = "1.1.1"
-wss_software.revision = "08 JAN 2023 02h15 AST"
+wss_software.version = "1.1.2"
+wss_software.revision = "08 JAN 2023 11h15 AST"
 wss_software.author = "Michel Vaillancourt <902pe_gaming@wolfstar.ca>"
 
 system.print("\n --------------- \n")
-system.print(wss_software.title)
-system.print(wss_software.version)
+msgTitleAndVersion = wss_software.title .. "\n" .. wss_software.version
+system.print(msgTitleAndVersion)
 
 ---
 precisionDigits = 2
@@ -58,6 +58,7 @@ inputBinsContents = {}
 outputBinContents = {}
 
 Screen.activate()
+Screen.setCenteredText(msgTitleAndVersion .. "\n\n BOOTING")
 
 system.print(wss_software.id..":" .. OutputBin.getName() .. ":arming timer for first maximum first run delay in ["..minutes[1].."] seconds")
 unit.setTimer(wss_software.id, minutes[1]) 

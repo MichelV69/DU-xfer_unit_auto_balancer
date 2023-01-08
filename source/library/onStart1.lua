@@ -1,4 +1,4 @@
--- library.onStart()
+-- library.onStart(1)
 -- define key functions for use elsewhere
 ---
 function roundUpToPrecision(valueToRound)
@@ -145,7 +145,7 @@ function renderScreen()
    local S_Title="]] .. wss_software.title ..[["
    local S_Version="]] .. wss_software.version ..[["
    local S_Revision="]] .. wss_software.revision ..[["
-   local timeStamp="]] .. system.getArkTime() ..[[" 
+   local timeStamp="]] .. epochTime() ..[[" 
    local xfer_l_name="]] ..OutputBin.getName() .. [["
    ]]
 
