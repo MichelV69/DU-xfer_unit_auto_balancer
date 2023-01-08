@@ -1,9 +1,9 @@
---- unit.onStart()
+--- unit.onStart(1)
 wss_software ={}
 wss_software.id = "xfer_unit_auto_scanner"
 wss_software.title = "Transfer Unit Auto-Scanner / Auto-Balancer"
-wss_software.version = "1.1.2"
-wss_software.revision = "08 JAN 2023 12h21 AST"
+wss_software.version = "1.1.3"
+wss_software.revision = "08 JAN 2023 15h51 AST"
 wss_software.author = "Michel Vaillancourt <902pe_gaming@wolfstar.ca>"
 
 system.print("\n --------------- \n")
@@ -29,9 +29,28 @@ statusCodeTable[6] = {state="Running"}
 statusCodeTable[7] = {state="No Schemas"}
 
 statusMessageTable = {}
-statusMessageTable["XFRUL_Status"] = "Unknown"
+statusMessageTable["XFRUL_Status"] = "Booting"
 statusMessageTable["XFR_Data"] = {material="Unknown", quantity=-1}
-statusMessageTable["comment"] = "..."
+statusMessageTable["comment"] = "Booting"
+
+screenPulseTable = {}
+screenPulseTable[1]  = "[-=+     ]"
+screenPulseTable[2]  = "[ -=+    ]"
+screenPulseTable[3]  = "[  -=+   ]"
+screenPulseTable[4]  = "[   -=+  ]"
+screenPulseTable[5]  = "[    -=+ ]"
+screenPulseTable[6]  = "[     -=+]"
+screenPulseTable[7]  = "[     -+=]"
+screenPulseTable[8]  = "[     +=-]"
+screenPulseTable[9]  = "[    +=- ]"
+screenPulseTable[10] = "[   +=-  ]"
+screenPulseTable[11] = "[  +=-   ]"
+screenPulseTable[12] = "[ +=-    ]"
+screenPulseTable[13] = "[+=-     ]"
+screenPulseTable[14] = "[=+-     ]"
+screenPulseTable[15] = "[=-+     ]"
+animationPulseIndex = 1
+
 ---
 msgTag={}
 msgTag["default"] = wss_software.id

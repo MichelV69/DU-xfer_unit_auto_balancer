@@ -16,6 +16,7 @@ function roundDownToPrecision(valueToRound)
 
 ---
 function balancerIsBusy()
+    local balancerStatus = XFR1.getState()
     isBusy = false
     if balancerStatus == 2
         or balancerStatus == 6 then
@@ -29,19 +30,93 @@ function balancerIsFree()
     end
 
 ---
+function updateBalancerStatusInfo()
+  local balancerStatus = XFR1.getState()
+  statusMessageTable["XFRUL_Status"] = statusCodeTable[balancerStatus].state
+  end
+
+---
 function checkBalancer()
   statusMessageTable["XFRUL_Status"] = "Unknown"
-  statusMessageTable["XFR_Data"] = {material="Unknown", quantity=-1}
+  statusMessageTable["XFR_Data"] = {material = "Unknown", quantity = -1}
   statusMessageTable["comment"] = "checkBalancer running"
 
   unit.stopTimer(wss_software.id)
-  balancerStatus = XFR1.getState()
+  updateBalancerStatusInfo()
+  
   if balancerIsBusy() then
-         statusMessageTable["comment"] = "XFRU-L busy on prior order"
-         else
-         runBalancer()
+    statusMessageTable["comment"] = "XFRU-L busy on prior order"
+    else
+    runBalancer()
+    end
+
+  unit.setTimer(wss_software.id, tickTimeSeconds)
+  end
+
+---
+function runBalancer()
+  statusMessageTable["XFRUL_Status"] = "Unknown"
+  statusMessageTable["XFR_Data"] = {material = "Unknown", quantity = -1}
+  statusMessageTable["comment"]  = "runBalancer running"
+  
+  XFR1.stop()
+  updateBalancerStatusInfo()
+
+  if #inputBinsContents == 0
+    or #outputBinContents == 0
+      then
+        statusMessageTable["comment"] = "Bin Data Not Yet Aquired"
+        return 
+        end
+
+  col_quantity=3
+  table.sort(inputBinsContents, function(a, b) return a[col_quantity] > b[col_quantity] end)
+
+  for row, column in ipairs(inputBinsContents) do --- 1
+    inputBinOreLitresAvailable = column[3]
+    outputBinOreLitresRequired = outputBinBigChunk
+    inputBinOreID   = column[1]
+    inputBinOreName = column[2]
+    
+    statusMessageTable["XFR_Data"] = {material = inputBinOreID, quantity = -1}
+    statusMessageTable["comment"]  = "Searching Output Bins"
+    
+    oreNotFoundInOutputBin = true
+
+    for row2, column2 in ipairs(outputBinContents) do
+      if column2[1] == inputBinOreID then
+        oreNotFoundInOutputBin = false
+        outputBinOreLitresAlreadyPresent = column2[3]
+        outputBinOreLitresRequired = outputBinBigChunk - outputBinOreLitresAlreadyPresent
+
+        statusMessageTable["XFR_Data"] = {material = inputBinOreName, quantity = outputBinOreLitresRequired}
+
+        if outputBinOreLitresRequired > inputBinOreLitresAvailable then outputBinOreLitresRequired = 0 end
+        if outputBinOreLitresAlreadyPresent > inputBinOreLitresAvailable then outputBinOreLitresRequired = 0 end
       end
-     unit.setTimer(wss_software.id, tickTimeSeconds)
+    end
+
+    if oreNotFoundInOutputBin then
+        outputBinOreLitresRequired = outputBinBigChunk
+        if outputBinOreLitresRequired > inputBinOreLitresAvailable then outputBinOreLitresRequired = roundUpToPrecision(inputBinOreLitresAvailable / 2) end
+        end
+
+    if outputBinOreLitresRequired > 0 then
+      XFR1.setOutput(inputBinOreID)
+      XFR1.startFor(1)
+      updateBalancerStatusInfo()
+
+      statusMessageTable["XFR_Data"] = {material = inputBinOreName, quantity = outputBinOreLitresRequired}
+      statusMessageTable["comment"]  = "Transfer started"
+      return
+      end
+
+    updateBalancerStatusInfo()
+    statusMessageTable["XFR_Data"] = {material = "--", quantity = 0}
+    statusMessageTable["comment"]  = "Inventory Balance OK"
+    end
+
+    return
   end
 
 ---
@@ -84,58 +159,12 @@ function loadTablesForBalancing()
   end
 
 ---
-function runBalancer()
-  system.print("\n -------[".. system.getArkTime() .."]------- \n")
-  system.print(wss_software.id .. ":runBalancer running")
-  XFR1.stop()
-
-  if #inputBinsContents == 0
-        or #outputBinContents == 0
-        then return end
-
-  col_quantity=3
-  table.sort(inputBinsContents, function(a, b) return a[col_quantity] > b[col_quantity] end)
-
-  for row, column in ipairs(inputBinsContents) do --- 1
-    inputBinOreLitresAvailable = column[3]
-    outputBinOreLitresRequired = outputBinBigChunk
-    inputBinOreID = column[1]
-    inputBinOreName = column[2]
-    system.print(OutputBin.getName() .. " ... Searching for " .. inputBinOreName)
-    oreNotFoundInOutputBin = true
-
-    for row2, column2 in ipairs(outputBinContents) do
-      if column2[1] == inputBinOreID then
-        system.print(OutputBin.getName() .. " ... FOUND " .. inputBinOreName )
-        oreNotFoundInOutputBin = false
-        outputBinOreLitresAlreadyPresent = column2[3]
-        outputBinOreLitresRequired = outputBinBigChunk - outputBinOreLitresAlreadyPresent
-
-        system.print(OutputBin.getName() .. " ... HAVE " .. outputBinOreLitresAlreadyPresent .. "L vs NEED " .. outputBinOreLitresRequired .. "L")
-
-        if outputBinOreLitresRequired > inputBinOreLitresAvailable then outputBinOreLitresRequired = 0 end
-        if outputBinOreLitresAlreadyPresent > inputBinOreLitresAvailable then outputBinOreLitresRequired = 0 end
-      end
+function screenPulseTick()
+    animationPulseIndex = animationPulseIndex + 1
+    if animationPulseIndex > #screenPulseTable then animationPulseIndex = 1 end
+    return screenPulseTable[animationPulseIndex]
     end
-
-    if oreNotFoundInOutputBin then
-        system.print(OutputBin.getName() .. " ... 404-" .. inputBinOreName)
-        outputBinOreLitresRequired = outputBinBigChunk
-        if outputBinOreLitresRequired > inputBinOreLitresAvailable then outputBinOreLitresRequired = roundUpToPrecision(inputBinOreLitresAvailable / 2) end
-        end
-
-    if outputBinOreLitresRequired > 0 then
-      XFR1.setOutput(inputBinOreID)
-      XFR1.startFor(1)
-      system.print(OutputBin.getName() .. " ... xfer started of " .. column[2] .. " for total of " .. outputBinOreLitresRequired .. "L")
-      return
-      end
-    end --- 1
-
-    return
-  end
----  
-
+---
 function renderScreen()
   local ScreenTable={}
   --Parameters (1)
@@ -151,6 +180,7 @@ function renderScreen()
      local XFR_material="]] ..statusMessageTable["XFR_Data"].material .. [["
      local XFR_quantity="]] ..statusMessageTable["XFR_Data"].quantity .. [["
      local comment="]] ..statusMessageTable["comment"] .. [["
+     local notDeadYet="]] ..screenPulseTick() .. [["
    ]]
 
   -- general layout(2)
@@ -195,9 +225,11 @@ function renderScreen()
       layout.margin_right = layout.margin_left
       
       --Font Setups
+      local offsetStepPX = 24
+      local fontSizeStep = 2
       local FontText=loadFont(FontName , FontSize)
-      local FontTextSmaller=loadFont(FontName , FontSize - 3)
-      local FontTextBigger=loadFont(FontName , FontSize + 3)
+      local FontTextSmaller=loadFont(FontName , FontSize - fontSizeStep)
+      local FontTextBigger=loadFont(FontName , FontSize + fontSizeStep)
     ]]
 
     --get data to publish (3)
@@ -241,7 +273,7 @@ function renderScreen()
           textMessage = item .. ":"
           addText(layers["report_text"], FontText, textMessage, publish_to.x_pos, publish_to.y_pos)    
       
-          offset = 15 * FontSize
+          offset = tidy(offsetStepPX * 0.8 * FontSize)
           textMessage = quantity
           addText(layers["report_text"], FontText, textMessage, publish_to.x_pos + offset, publish_to.y_pos)    
           end
@@ -249,27 +281,34 @@ function renderScreen()
 
   --- XFR-U-L Status Display (6)
   ScreenTable[6]=[[
-    offset = 20 * FontSize
+    
+    offset = offsetStepPX * FontSize
     textMessage = xfer_l_name
     local row = vpos + 1
     local col = 2
     publish_to = getRowColsPosition(layout, col, row)
     addText(layers["report_text"], FontTextBigger, textMessage, publish_to.x_pos + offset, publish_to.y_pos)    
 
-    row = vpos + 3
+    row = row + 1
     publish_to = getRowColsPosition(layout, col, row)
     textMessage = "Status : "..XFRUL_Status
     addText(layers["report_text"], FontText, textMessage, publish_to.x_pos + offset, publish_to.y_pos)    
 
-    row = vpos + 4
+    row = row + 1
     publish_to = getRowColsPosition(layout, col, row)
     textMessage = "Working On : "..XFR_material.." ("..XFR_quantity..")"
     addText(layers["report_text"], FontText, textMessage, publish_to.x_pos + offset, publish_to.y_pos) 
 
-    row = vpos + 5
+    row = row + 1
     publish_to = getRowColsPosition(layout, col, row)
     textMessage = "Of Note : "..comment
     addText(layers["report_text"], FontText, textMessage, publish_to.x_pos + offset, publish_to.y_pos)    
+
+    row = row + 2
+    publish_to = getRowColsPosition(layout, col, row)
+    textMessage = notDeadYet
+    addText(layers["report_text"], FontText, textMessage, publish_to.x_pos + offset, publish_to.y_pos)    
+   
   ]]
   
   --Animation (7)
