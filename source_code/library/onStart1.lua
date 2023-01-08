@@ -30,13 +30,14 @@ function balancerIsFree()
 
 ---
 function checkBalancer()
-  system.print(OutputBin.getName() .. ":checkBalancer running")
+  statusMessageTable["XFRUL_Status"] = "Unknown"
+  statusMessageTable["XFR_Data"] = {material="Unknown", quantity=-1}
+  statusMessageTable["comment"] = "checkBalancer running"
 
   unit.stopTimer(wss_software.id)
   balancerStatus = XFR1.getState()
-  system.print(OutputBin.getName() .. ":balancerStatus:" .. balancerStatus)
   if balancerIsBusy() then
-         system.print(OutputBin.getName() .. ":balancer busy on prior order")
+         statusMessageTable["comment"] = "XFRU-L busy on prior order"
          else
          runBalancer()
       end
@@ -133,126 +134,148 @@ function runBalancer()
 
     return
   end
----
+---  
 
 function renderScreen()
-
   local ScreenTable={}
   --Parameters (1)
    ScreenTable[1]=[[
-   local FontName=]] .. FontName ..[[
-   local FontSize=]] .. FontSize ..[[
-   local S_Title="]] .. wss_software.title ..[["
-   local S_Version="]] .. wss_software.version ..[["
-   local S_Revision="]] .. wss_software.revision ..[["
-   local timeStamp="]] .. epochTime() ..[[" 
-   local xfer_l_name="]] ..OutputBin.getName() .. [["
+     local FontName=]] .. FontName ..[[
+     local FontSize=]] .. FontSize ..[[
+     local S_Title="]] .. wss_software.title ..[["
+     local S_Version="]] .. wss_software.version ..[["
+     local S_Revision="]] .. wss_software.revision ..[["
+     local timeStamp="]] .. epochTime() ..[[" 
+     local xfer_l_name="]] ..OutputBin.getName() .. [["
+     local XFRUL_Status="]] ..statusMessageTable["XFRUL_Status"] .. [["
+     local XFR_material="]] ..statusMessageTable["XFR_Data"].material .. [["
+     local XFR_quantity="]] ..statusMessageTable["XFR_Data"].quantity .. [["
+     local comment="]] ..statusMessageTable["comment"] .. [["
    ]]
 
-   -- general layout(2)
-   ScreenTable[2]=[[
-   --Layers
-   local layers={}
-   layers["background"]  = createLayer()
-   layers["shading"]     = createLayer()
-   layers["report_text"] = createLayer()
-   layers["footer_text"] = createLayer()
-   layers["header_text"] = createLayer()
-
-   --util functions
-    function tidy(valueToRound)
+  -- general layout(2)
+  ScreenTable[2]=[[
+      --Layers
+      local layers={}
+      layers["background"]  = createLayer()
+      layers["shading"]     = createLayer()
+      layers["report_text"] = createLayer()
+      layers["footer_text"] = createLayer()
+      layers["header_text"] = createLayer()
+      
+      --util functions
+      function tidy(valueToRound)
         precisionDigits = 2
         precisionValue  = 10^precisionDigits
         if valueToRound == nil then return 0 end
         local roundedValue = (math.floor(valueToRound * precisionValue) / precisionValue)
         return roundedValue
         end
-    
-    
-   --Scr Resolution
-    local rx, ry=getResolution()
-    local layout = {}
-    layout.cols_wide = tidy(rx/(FontSize*1.2))
-    layout.col_width = tidy(rx/layout.cols_wide)
-    
-    layout.rows_high = tidy(ry/(FontSize*1.2))
-    layout.row_height = tidy(ry/layout.rows_high)
-    
-    layout.margin_top = tidy((ry * 0.1) / 2)
-    layout.margin_bottom = layout.margin_top
-    layout.margin_left = tidy((rx * 0.1) / 2)
-    layout.margin_right = layout.margin_left
-
-    local FontText=loadFont(FontName , FontSize)
-
-    function getRowColsPosition(layout, col, row)
-      if col > layout.cols_wide then col = layout.cols_wide end
-      x_pos = (layout.col_width * col) + layout.margin_left
-
-      if row > layout.rows_high then row = layout.rows_high end
-      y_pos = (layout.row_height * row) + layout.margin_top
-
-      return {x_pos = x_pos, y_pos = y_pos}
-      end ]]
+        
+      function getRowColsPosition(layout, col, row)
+        if col > layout.cols_wide then col = layout.cols_wide end
+        x_pos = (layout.col_width * col) + layout.margin_left
+        if row > layout.rows_high then row = layout.rows_high end
+        y_pos = (layout.row_height * row) + layout.margin_top
+        return {x_pos = x_pos, y_pos = y_pos}
+      end 
+          
+      --Scr Resolution
+      local rx, ry=getResolution()
+      local layout = {}
+      layout.cols_wide = tidy(rx/(FontSize*1.2))
+      layout.col_width = tidy(rx/layout.cols_wide)
+      
+      layout.rows_high = tidy(ry/(FontSize*1.2))
+      layout.row_height = tidy(ry/layout.rows_high)
+      
+      layout.margin_top = tidy((ry * 0.1) / 2)
+      layout.margin_bottom = layout.margin_top
+      layout.margin_left = tidy((rx * 0.1) / 2)
+      layout.margin_right = layout.margin_left
+      
+      --Font Setups
+      local FontText=loadFont(FontName , FontSize)
+      local FontTextSmaller=loadFont(FontName , FontSize - 3)
+      local FontTextBigger=loadFont(FontName , FontSize + 3)
+    ]]
 
     --get data to publish (3)
     ScreenTable[3]=[[
-    local json=require('dkjson')
-    local input=json.decode(getInput()) or {}
-    local tidyInBinContents=input	
-    
+      local json=require('dkjson')
+      local input=json.decode(getInput()) or {}
+      local tidyInBinContents=input	
     ]]    
     
-    -- demo data(4)
+    -- header and footer (4)
     ScreenTable[4]=[[
-    local vpos = 1
-    publish_to = getRowColsPosition(layout, 1, vpos)
-    textMessage = S_Title .. " v" .. S_Version .. " (" .. S_Revision .. ")"
-    addText(layers["header_text"], FontText, textMessage, publish_to.x_pos, publish_to.y_pos)
-    
-    publish_to = getRowColsPosition(layout, 1, vpos+1)
-    textMessage = "There are " .. #tidyInBinContents .. " Rows of data to publish."
-    addText(layers["header_text"], FontText, textMessage, publish_to.x_pos, publish_to.y_pos)
+      local vpos = 1
+      publish_to = getRowColsPosition(layout, 1, vpos)
+      textMessage = S_Title .. " v" .. S_Version .. " (" .. S_Revision .. ")"
+      addText(layers["header_text"], FontTextSmaller, textMessage, publish_to.x_pos, publish_to.y_pos)
+      
+      publish_to = getRowColsPosition(layout, 1, vpos+1)
+      textMessage = "There are " .. #tidyInBinContents .. " Rows of data to publish."
+      addText(layers["header_text"], FontTextSmaller, textMessage, publish_to.x_pos, publish_to.y_pos)
+  
+      col = tidy(layout.cols_wide/3)
+      row = layout.rows_high - 3
+      
+      publish_to = getRowColsPosition(layout, col, row)
+      textMessage = "screen last updated: ["..timeStamp.."]"
+      addText(layers["footer_text"], FontTextSmaller, textMessage, publish_to.x_pos, publish_to.y_pos)
+    ]]
 
-    col = tidy(layout.cols_wide/3)
-    row = layout.rows_high - 3
-    
-    publish_to = getRowColsPosition(layout, col, row)
-    textMessage = "screen last updated: ["..timeStamp.."]"
-    addText(layers["footer_text"], FontText, textMessage, publish_to.x_pos, publish_to.y_pos) ]]
-
-    --- now do some clever screen output here (5)
+    --- bin contents listing (5)
     ScreenTable[5]=[[
-        screen_offset = 2
-        index_offset  = 1
-        vpos = tidy((layout.rows_high - #tidyInBinContents - screen_offset - index_offset)/2)
-        for ptr=1,#tidyInBinContents do
-            local item = tidyInBinContents[ptr][1]
-            local quantity = tidyInBinContents[ptr][2]
-
-            local row = vpos + ptr
-            local col = 2
-            publish_to = getRowColsPosition(layout, col, row)
-            textMessage = item .. ":"
-            addText(layers["report_text"], FontText, textMessage, publish_to.x_pos, publish_to.y_pos)    
-
-            offset = 15 * FontSize
-            textMessage = quantity
-            addText(layers["report_text"], FontText, textMessage, publish_to.x_pos + offset, publish_to.y_pos)    
-            end
-     
-        offset = 20 * FontSize
-        textMessage = "Connected to: " .. xfer_l_name
-        local row = vpos + 1
-        local col = 2
-        publish_to = getRowColsPosition(layout, col, row)
-        addText(layers["report_text"], FontText, textMessage, publish_to.x_pos + offset, publish_to.y_pos)    
-    
+      screen_offset = 2
+      index_offset  = 1
+      vpos = tidy((layout.rows_high - #tidyInBinContents - screen_offset - index_offset)/2)
+      for ptr=1,#tidyInBinContents do
+          local item = tidyInBinContents[ptr][1]
+          local quantity = tidyInBinContents[ptr][2]
+      
+          local row = vpos + ptr
+          local col = 2
+          publish_to = getRowColsPosition(layout, col, row)
+          textMessage = item .. ":"
+          addText(layers["report_text"], FontText, textMessage, publish_to.x_pos, publish_to.y_pos)    
+      
+          offset = 15 * FontSize
+          textMessage = quantity
+          addText(layers["report_text"], FontText, textMessage, publish_to.x_pos + offset, publish_to.y_pos)    
+          end
      ]]
 
-     --Animation (7)
-   ScreenTable[7]=[[
-   requestAnimationFrame(5)]]
+  --- XFR-U-L Status Display (6)
+  ScreenTable[6]=[[
+    offset = 20 * FontSize
+    textMessage = xfer_l_name
+    local row = vpos + 1
+    local col = 2
+    publish_to = getRowColsPosition(layout, col, row)
+    addText(layers["report_text"], FontTextBigger, textMessage, publish_to.x_pos + offset, publish_to.y_pos)    
+
+    row = vpos + 3
+    publish_to = getRowColsPosition(layout, col, row)
+    textMessage = "Status : "..XFRUL_Status
+    addText(layers["report_text"], FontText, textMessage, publish_to.x_pos + offset, publish_to.y_pos)    
+
+    row = vpos + 4
+    publish_to = getRowColsPosition(layout, col, row)
+    textMessage = "Working On : "..XFR_material.." ("..XFR_quantity..")"
+    addText(layers["report_text"], FontText, textMessage, publish_to.x_pos + offset, publish_to.y_pos) 
+
+    row = vpos + 5
+    publish_to = getRowColsPosition(layout, col, row)
+    textMessage = "Of Note : "..comment
+    addText(layers["report_text"], FontText, textMessage, publish_to.x_pos + offset, publish_to.y_pos)    
+  ]]
+  
+  --Animation (7)
+  ScreenTable[7]=[[
+    requestAnimationFrame(5)
+  ]]
 
   --RENDER
    function ScreenRender()

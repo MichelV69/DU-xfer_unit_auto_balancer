@@ -3,7 +3,7 @@ wss_software ={}
 wss_software.id = "xfer_unit_auto_scanner"
 wss_software.title = "Transfer Unit Auto-Scanner / Auto-Balancer"
 wss_software.version = "1.1.2"
-wss_software.revision = "08 JAN 2023 11h15 AST"
+wss_software.revision = "08 JAN 2023 12h21 AST"
 wss_software.author = "Michel Vaillancourt <902pe_gaming@wolfstar.ca>"
 
 system.print("\n --------------- \n")
@@ -28,6 +28,10 @@ statusCodeTable[5] = {state="No Output"}
 statusCodeTable[6] = {state="Running"}
 statusCodeTable[7] = {state="No Schemas"}
 
+statusMessageTable = {}
+statusMessageTable["XFRUL_Status"] = "Unknown"
+statusMessageTable["XFR_Data"] = {material="Unknown", quantity=-1}
+statusMessageTable["comment"] = "..."
 ---
 msgTag={}
 msgTag["default"] = wss_software.id
