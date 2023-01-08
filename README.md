@@ -1,7 +1,7 @@
 # Transfer Unit Auto-Scanner / Auto-Balancer
 
 ## rlease version / revision 
- + 1.1.1 / 08 JAN 2023 02h15 AST
+ + 1.1.2 / 08 JAN 2023 11h15 AST
 
 ## contact 
   + "Michel Vaillancourt <902pe_gaming@wolfstar.ca>"
@@ -55,7 +55,7 @@
     
 # Known Issues (this release)
 
-  1. ***(TBFxd)*** The time stamp is in raw seconds, and not human-friendly.
+  1. ***(FIXED)*** The time stamp is in raw seconds, and not human-friendly.
 
 # Thanks To
 
