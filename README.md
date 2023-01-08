@@ -34,18 +34,18 @@
 # Installation
 
   1. Deploy the containers.
-    1. Load the "Primary" or "Input" Container with whatever items you wish stacks of automatically moved to the "Secondary" or "Output" Container.
-    1. Manually move one (1) unit of an item into the "Secondary" or "Output" Container.
+      1. Load the "Primary" or "Input" Container with whatever items you wish stacks of automatically moved to the "Secondary" or "Output" Container.
+      1. Manually move one (1) unit of an item into the "Secondary" or "Output" Container.
       * *NB* : 'Balancing' / 'Batch-Transfer' operations ***will not run*** until you do this.
   1. Deploy the "Transfer Unit L" and link the two (2) containers, as usual.
   1. Deploy the "Programming Board XS"
   1. Copy-Paste the JSON LUA of the latest version of the script to the "Programming Board XS".
     * Right-Click the "Programming Board XS", select "Advanced", then select "Paste Lua configuration from clipboard"
   1. Enter Build Mode for your factory, select the "Link Elements Tool", right-click the "Programming Board XS", click "Select an OUT plug to link to ...", select "[XFR1, Control] and link to it as usual.
-    1. Repeat this process for the "Screen", the "InputBin1", and the "OutputBin"
-    1. Exit Build Mode
+      1. Repeat this process for the "Screen", the "InputBin1", and the "OutputBin"
+      1. Exit Build Mode
   1. "Activate" the "Programming Board XS" and watch the LUA channel for activity.
-    1. The Screen should light up after a moment.
+      1. The Screen should light up after a moment.
   1. The "Transfer Unit L" should start working on it's first batch within two (2) minutes, depending on how busy your factory is. 
 
 # Behaviour Issues
@@ -56,6 +56,9 @@
 # Known Issues (this release)
 
   1. ***(FIXED)*** The time stamp is in raw seconds, and not human-friendly.
+  1. ***(TBFxd)*** The software is very "chatty" in the LUA channel.
+  1. ***(TBFxd)*** The more of these things there are, the less accurate they get because of polling lag forced by NQ.
+      1. Add a "success penalty" to force Balancers with fresh data to go to the back of the line.
 
 # Thanks To
 
