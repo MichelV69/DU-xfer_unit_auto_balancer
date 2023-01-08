@@ -1,7 +1,7 @@
 # Transfer Unit Auto-Scanner / Auto-Balancer
 
 ## rlease version / revision 
- + 1.1.2 / 08 JAN 2023 11h15 AST
+ + 1.1.3 / 08 JAN 2023 15h51 AST
 
 ## contact 
   + "Michel Vaillancourt <902pe_gaming@wolfstar.ca>"
@@ -51,12 +51,13 @@
 # Behaviour Issues
 
   1. The software is very "chatty" in the LUA channel. 
-    1. It's going to stay that way for a while until I'm completely convinced it does what I think it should.
+      1. It's going to stay that way for a while until I'm completely convinced it does what I think it should.
     
 # Known Issues (this release)
 
   1. ***(FIXED)*** The time stamp is in raw seconds, and not human-friendly.
   1. ***(TBFxd)*** The software is very "chatty" in the LUA channel.
+      1. Some work done on this; moving a lot of the diagnoistic info to the screen.
   1. ***(TBFxd)*** The more of these things there are, the less accurate they get because of polling lag forced by NQ.
       1. Add a "success penalty" to force Balancers with fresh data to go to the back of the line.
 
