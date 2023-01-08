@@ -1,7 +1,7 @@
 # Transfer Unit Auto-Scanner / Auto-Balancer
 
 ## rlease version / revision 
- + 1.1.3 / 08 JAN 2023 15h51 AST
+ + 1.1.4 / 08 JAN 2023 18h30 AST
 
 ## contact 
   + "Michel Vaillancourt <902pe_gaming@wolfstar.ca>"
@@ -60,6 +60,12 @@
       1. Some work done on this; moving a lot of the diagnoistic info to the screen.
   1. ***(TBFxd)*** The more of these things there are, the less accurate they get because of polling lag forced by NQ.
       1. Add a "success penalty" to force Balancers with fresh data to go to the back of the line.
+  1. ***(TBFxd)*** Directly related to the above item, you might find that with a lot of these running a couple of them
+   get "overzealous" about transfering ALL THE THINGS from Primary to Secondary. Until I get the polling system written, 
+   every once in a while, it's worth manually moving everything from Secondary back to Primary and then letting it
+   re-balance.
+      1. This might be a non-issue for super busy factories where the Secondary is getting pulled from heavily.
+      I'm running an Omni-factory build, so every once in a while its a minor pest.
 
 # Thanks To
 
