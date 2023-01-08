@@ -2,32 +2,32 @@
 -- define key functions for use elsewhere
 ---
 function roundUpToPrecision(valueToRound)
-     if valueToRound == nil then return 0 end
-     local roundedValue = (math.ceil(valueToRound * precisionValue) / precisionValue)
+  if valueToRound == nil then return 0 end
+  local roundedValue = (math.ceil(valueToRound * precisionValue) / precisionValue)
   return roundedValue
   end
 
 ---
 function roundDownToPrecision(valueToRound)
-     if valueToRound == nil then return 0 end
-     local roundedValue = (math.floor(valueToRound * precisionValue) / precisionValue)
+  if valueToRound == nil then return 0 end
+  local roundedValue = (math.floor(valueToRound * precisionValue) / precisionValue)
   return roundedValue
   end
 
 ---
 function balancerIsBusy()
-    local balancerStatus = XFR1.getState()
-    isBusy = false
-    if balancerStatus == 2
-        or balancerStatus == 6 then
-        isBusy = true
-        end
-    return isBusy
-    end
+  local balancerStatus = XFR1.getState()
+  isBusy = false
+  if balancerStatus == 2
+    or balancerStatus == 6 then
+      isBusy = true
+      end
+  return isBusy
+  end
 
 function balancerIsFree()
-    return (balancerIsBusy() == false)
-    end
+  return (balancerIsBusy() == false)
+  end
 
 ---
 function updateBalancerStatusInfo()
@@ -98,7 +98,9 @@ function runBalancer()
 
     if oreNotFoundInOutputBin then
         outputBinOreLitresRequired = outputBinBigChunk
-        if outputBinOreLitresRequired > inputBinOreLitresAvailable then outputBinOreLitresRequired = roundUpToPrecision(inputBinOreLitresAvailable / 2) end
+        if outputBinOreLitresRequired > inputBinOreLitresAvailable then 
+          outputBinOreLitresRequired = roundUpToPrecision(inputBinOreLitresAvailable / 2) 
+          end
         end
 
     if outputBinOreLitresRequired > 0 then
@@ -126,47 +128,94 @@ function loadTablesForBalancing()
   if #outBinItemList > 0 then
     outputBinContents = {}
 
-      for _,column in ipairs(outBinItemList) do
-        local quantity = math.floor((column.quantity*100)/100)
-        local item = system.getItem(column.id)
-        local item_data = {
-            column.id,
-            item.locDisplayNameWithSize,
-            quantity,
-            item.iconPath
-        }
-        table.insert(outputBinContents, item_data)
-        end
+    for _,column in ipairs(outBinItemList) do
+      local quantity = math.floor((column.quantity*100)/100)
+      local item = system.getItem(column.id)
+      local item_data = {
+          column.id,
+          item.locDisplayNameWithSize,
+          quantity,
+          item.iconPath
+      }
+      table.insert(outputBinContents, item_data)
       end
+    end
 
   inBinItemList = InputBin1.getContent()
   if #inBinItemList > 0 then
-      inputBinsContents = {}
-      for _,column in ipairs(inBinItemList) do
-        local quantity = math.floor((column.quantity*100)/100)
-        local item = system.getItem(column.id)
-        local item_data = {
-            column.id,
-            item.locDisplayNameWithSize,
-            quantity,
-            item.iconPath
-        }
-        table.insert(inputBinsContents, item_data)
-       end
-      end
-
-  system.print(OutputBin.getName() .. ":loadTablesForBalancing: in/out: [" .. #inputBinsContents .. "/" .. #outputBinContents .. "]")
+    inputBinsContents = {}
+    for _,column in ipairs(inBinItemList) do
+      local quantity = math.floor((column.quantity*100)/100)
+      local item = system.getItem(column.id)
+      local item_data = {
+          column.id,
+          item.locDisplayNameWithSize,
+          quantity,
+          item.iconPath
+      }
+      table.insert(inputBinsContents, item_data)
+     end
+    end
   end
 
 ---
 function screenPulseTick()
-    animationPulseIndex = animationPulseIndex + 1
-    if animationPulseIndex > #screenPulseTable then animationPulseIndex = 1 end
-    return screenPulseTable[animationPulseIndex]
-    end
+  animationPulseIndex = animationPulseIndex + 1
+  if animationPulseIndex > #screenPulseTable then animationPulseIndex = 1 end
+  return screenPulseTable[animationPulseIndex]
+  end
+
+function containerLoadData(input_percent)
+  mt  = "_"
+  lo  = "-"
+  med = "+"
+  hi  = "="
+    
+  maxBarWidth = 10
+  fill_bar = ""
+  barEmpty = math.ceil(maxBarWidth * (1-input_percent))
+  barFilled = maxBarWidth - barEmpty
+    
+  fillCap = 3
+  if fillCap > barFilled then fillCap = barFilled end
+  for i=1,fillCap,1
+    do
+      fill_bar = fill_bar .. lo
+      barFilled = barFilled - 1
+      end
+  
+  fillCap = 3
+  if fillCap > barFilled then fillCap = barFilled end
+  for i=1,fillCap,1
+    do
+      fill_bar = fill_bar .. med
+      barFilled = barFilled - 1
+      end
+
+  fillCap = 3
+  if fillCap > barFilled then fillCap = barFilled end
+  for i=1,fillCap,1
+    do
+      fill_bar = fill_bar .. hi
+      barFilled = barFilled - 1
+      end
+
+  for i=1,barEmpty,1
+    do
+      fill_bar = fill_bar .. mt
+      end
+  
+  return fill_bar
+  
+  end
+
 ---
 function renderScreen()
-  local ScreenTable={}
+  local ScreenTable = {}
+  local input_percent  = roundDownToPrecision(InputBin1.getItemsVolume()/InputBin1.getMaxVolume())
+  local output_percent = roundDownToPrecision(OutputBin.getItemsVolume()/OutputBin.getMaxVolume())
+    
+    
   --Parameters (1)
    ScreenTable[1]=[[
      local FontName=]] .. FontName ..[[
@@ -181,6 +230,8 @@ function renderScreen()
      local XFR_quantity="]] ..statusMessageTable["XFR_Data"].quantity .. [["
      local comment="]] ..statusMessageTable["comment"] .. [["
      local notDeadYet="]] ..screenPulseTick() .. [["
+     local input_percent="]] ..containerLoadData(input_percent) .. [["
+     local output_percent="]] ..containerLoadData(output_percent) .. [["
    ]]
 
   -- general layout(2)
@@ -245,9 +296,16 @@ function renderScreen()
       publish_to = getRowColsPosition(layout, 1, vpos)
       textMessage = S_Title .. " v" .. S_Version .. " (" .. S_Revision .. ")"
       addText(layers["header_text"], FontTextSmaller, textMessage, publish_to.x_pos, publish_to.y_pos)
-      
+
+      itemListShort = #tidyInBinContents
+      shortListNotice = "has "
+      if itemListShort > 18 then 
+        itemListShort = 18 
+        shortListNotice = "is limited to the first "
+        end
+    
       publish_to = getRowColsPosition(layout, 1, vpos+1)
-      textMessage = "There are " .. #tidyInBinContents .. " Rows of data to publish."
+      textMessage = "Primary container list " .. shortListNotice .. #tidyInBinContents .. " items."
       addText(layers["header_text"], FontTextSmaller, textMessage, publish_to.x_pos, publish_to.y_pos)
   
       col = tidy(layout.cols_wide/3)
@@ -263,7 +321,8 @@ function renderScreen()
       screen_offset = 2
       index_offset  = 1
       vpos = tidy((layout.rows_high - #tidyInBinContents - screen_offset - index_offset)/2)
-      for ptr=1,#tidyInBinContents do
+
+      for ptr=1,itemListShort do
           local item = tidyInBinContents[ptr][1]
           local quantity = tidyInBinContents[ptr][2]
       
@@ -308,7 +367,16 @@ function renderScreen()
     publish_to = getRowColsPosition(layout, col, row)
     textMessage = notDeadYet
     addText(layers["report_text"], FontText, textMessage, publish_to.x_pos + offset, publish_to.y_pos)    
-   
+
+    row = row + 2
+    publish_to = getRowColsPosition(layout, col, row)
+    textMessage = "Fill Level (Input Volume) [" .. input_percent .. "]"
+    addText(layers["report_text"], FontText, textMessage, publish_to.x_pos + offset, publish_to.y_pos)    
+    row = row + 1
+    publish_to = getRowColsPosition(layout, col, row)
+    textMessage = "Fill Level (Output Volume) [" .. output_percent .. "]"
+    addText(layers["report_text"], FontText, textMessage, publish_to.x_pos + offset, publish_to.y_pos)    
+
   ]]
   
   --Animation (7)
