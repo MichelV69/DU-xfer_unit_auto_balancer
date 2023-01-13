@@ -19,6 +19,7 @@ function balancerIsBusy()
   local balancerStatus = XFR1.getState()
   isBusy = false
   if balancerStatus == 2
+    or balancerStatus == 3 
     or balancerStatus == 6 then
       isBusy = true
       end
@@ -43,14 +44,17 @@ function checkBalancer()
 
   unit.stopTimer(wss_software.id)
   updateBalancerStatusInfo()
+    
+  longOperationPenalty = 0
   
   if balancerIsBusy() then
     statusMessageTable["comment"] = "XFRU-L busy on prior order"
+    longOperationPenalty = tickTimeSeconds * longOperationPenaltyFactor
     else
     runBalancer()
     end
 
-  unit.setTimer(wss_software.id, tickTimeSeconds)
+  unit.setTimer(wss_software.id, tickTimeSeconds + longOperationPenaltyFactor)
   end
 
 ---
@@ -320,7 +324,7 @@ function renderScreen()
     ScreenTable[5]=[[
       screen_offset = 2
       index_offset  = 1
-      vpos = tidy((layout.rows_high - #tidyInBinContents - screen_offset - index_offset)/2)
+      vpos = tidy((layout.rows_high - itemListShort - screen_offset - index_offset)/2)
 
       for ptr=1,itemListShort do
           local item = tidyInBinContents[ptr][1]
