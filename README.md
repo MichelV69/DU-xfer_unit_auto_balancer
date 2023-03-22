@@ -1,7 +1,7 @@
 # Transfer Unit Auto-Scanner / Auto-Balancer
 
 ## rlease version / revision 
- + 1.1.4 / 08 JAN 2023 18h30 AST
+ + 1.1.9 / 22 MAR 2023 12h30 AST
 
 ## contact 
   + "Michel Vaillancourt <902pe_gaming@wolfstar.ca>"
@@ -58,7 +58,7 @@
   1. ***(FIXED)*** The time stamp is in raw seconds, and not human-friendly.
   1. ***(TBFxd)*** The software is very "chatty" in the LUA channel.
       1. Some work done on this; moving a lot of the diagnoistic info to the screen.
-  1. ***(TBFxd)*** The more of these things there are, the less accurate they get because of polling lag forced by NQ.
+  1. ***(FIXED)*** The more of these things there are, the less accurate they get because of polling lag forced by NQ.
       1. Add a "success penalty" to force Balancers with fresh data to go to the back of the line.
   1. ***(TBFxd)*** Directly related to the above item, you might find that with a lot of these running a couple of them
    get "overzealous" about transfering ALL THE THINGS from Primary to Secondary. Until I get the polling system written, 
