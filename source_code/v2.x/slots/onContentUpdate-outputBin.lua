@@ -1,3 +1,4 @@
-system.print(wss_software.id .. "OutputBin(OCU)")
-LoadOutputBinInventory(1)
+--- LoadOutputBinInventory(1)
+system.print(wss_software.id .. ":OutputBin(OCU)" .. "[" .. #InputBinContents .. "|" .. #OutputBinContents .."]")
+RunBalancer()
 --- eof 

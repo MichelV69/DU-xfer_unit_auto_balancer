@@ -14,11 +14,6 @@ function balancerIsFree()
   return (balancerIsBusy() == false)
 end
 
----
-function updateBalancerStatusInfo()
-  local balancerStatus = XFR1.getState()
-  statusMessageTable["XFRUL_Status"] = statusCodeTable[balancerStatus].state
-end
 
 ---
 function checkBalancer()

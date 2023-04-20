@@ -1,4 +1,25 @@
 ---
+TimersAreRunning = false
+function BootTimers()
+  unit.setTimer(MsgTag["inBin"], TickTimeSeconds * 0.1)
+  unit.setTimer(MsgTag["outBin"], TickTimeSeconds * 0.2)
+  unit.setTimer(MsgTag["balance"], TickTimeSeconds * 1.0)
+  unit.setTimer(MsgTag["screen"], TickTimeSeconds * 1.2)
+  unit.setTimer(MsgTag["default"], TickTimeSeconds * 5.5)
+  TimersAreRunning = true
+end --- function BootTimers()
+
+---
+function StopAllTimers()
+  unit.stopTimer(MsgTag["screen"])
+  unit.stopTimer(MsgTag["inBin"])
+  unit.stopTimer(MsgTag["outBin"])
+  unit.stopTimer(MsgTag["balance"])
+  unit.stopTimer(MsgTag["default"])
+  TimersAreRunning = false
+end --- function StopAllTimers()
+
+---
 function LoadInputBinInventory()
   -- stop timer
   local msgTag = MsgTag["inBin"]
@@ -20,11 +41,12 @@ function LoadInputBinInventory()
           quantity,
           item.iconPath
         }
-        table.insert(InputBinContents, item_data)
+        if quantity > (OutputBinBigChunk * 0.345) then
+          table.insert(InputBinContents, item_data)
+        end
       end
     end
-    retrySeconds = TickTimeSeconds
-    RunBalancer()
+    retrySeconds = TickTimeSeconds * 3
   end
 
   -- if return time is not zero, set timer to return time
@@ -78,7 +100,6 @@ function RunBalancer()
   StatusMessageTable["comment"]      = "RunBalancer running"
 
   XFRU.stop()
-  UpdateBalancerStatusInfo()
 
   if #InputBinContents == 0
       or #OutputBinContents == 0
@@ -101,16 +122,19 @@ function RunBalancer()
     StatusMessageTable["comment"]    = "Searching Output Bins - " .. inputBinOreName
 
     for row2, column2 in ipairs(OutputBinContents) do
-      local outputBinOreID           = column2[1]
-      local outputBinOreName         = column2[2]
-      local outputBinOreQTY          = column2[3]
+      local outputBinOreID   = column2[1]
+      local outputBinOreName = column2[2]
+      local outputBinOreQTY  = column2[3]
 
       if outputBinOreID == inputBinOreID then
-        outputBinOreLitresRequired     = OutputBinBigChunk - outputBinOreQTY
+        outputBinOreLitresRequired = OutputBinBigChunk - outputBinOreQTY
       end
       StatusMessageTable["XFR_Data"] = { material = inputBinOreName, quantity = outputBinOreLitresRequired }
     end -- for row2, column2
 
+    if outputBinOreLitresRequired < 0 then
+      outputBinOreLitresRequired = 0
+    end
     if outputBinOreLitresRequired > outputBinOreLitresAvailable then
       outputBinOreLitresRequired = 0
     end
@@ -118,27 +142,36 @@ function RunBalancer()
     outputBinOreLitresRequired = RoundOff(outputBinOreLitresRequired)
     if outputBinOreLitresRequired > 0 then
       XFRU.setOutput(inputBinOreID)
-      XFRU.startMaintain(outputBinOreLitresRequired)
-      UpdateBalancerStatusInfo()
+      XFRU.startMaintain(OutputBinBigChunk)
 
-      StatusMessageTable["XFR_Data"] = { material = inputBinOreName, quantity = outputBinOreLitresRequired }
+      StatusMessageTable["XFR_Data"] = { material = inputBinOreName, quantity = OutputBinBigChunk }
       StatusMessageTable["comment"]  = "Transfer started"
       return
     end
 
-    UpdateBalancerStatusInfo()
     StatusMessageTable["XFR_Data"] = { material = "--", quantity = 0 }
     StatusMessageTable["comment"]  = "Inventory Balance OK"
   end -- for row, column
 
   return
-end
+end --- function RunBalancer()
 
 ---
 function UpdateBalancerStatusInfo()
   local balancerStatus = XFRU.getState()
   StatusMessageTable["XFRUL_Status"] = StatusCodeTable[balancerStatus].state
-  return 
-end
+
+  if balancerStatus == UNIT_WORKING
+      and TimersAreRunning then
+    StopAllTimers()
+  end
+
+  if balancerStatus ~= UNIT_WORKING
+      and not TimersAreRunning then
+    BootTimers()
+  end
+
+  return
+end --- function UpdateBalancerStatusInfo()
 
 --- eof ---

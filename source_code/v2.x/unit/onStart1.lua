@@ -2,8 +2,8 @@
 wss_software = {}
 wss_software.id = "xfer_unit_auto_scanner"
 wss_software.title = "Transfer Unit Auto-Scanner / Auto-Balancer"
-wss_software.version = "2.0.0"
-wss_software.revision = "18 APR 2023 19h47 AST"
+wss_software.version = "2.0.0d"
+wss_software.revision = "19 APR 2023 22h45 AST"
 wss_software.author = "Michel Vaillancourt <902pe_gaming@wolfstar.ca>"
 
 system.print("\n --------------- \n")
@@ -11,7 +11,6 @@ msgTitleAndVersion = wss_software.title .. "\n" .. wss_software.version
 system.print(msgTitleAndVersion)
 
 ---
-
 StatusMessageTable                 = {}
 StatusMessageTable["XFRUL_Status"] = "Booting"
 StatusMessageTable["XFR_Data"]     = { material = "Unknown", quantity = -1 }
@@ -23,7 +22,9 @@ MsgTag["default"]                  = wss_software.id
 MsgTag["inBin"]                    = "_inputBinContents"
 MsgTag["outBin"]                   = "_outputBinContents"
 MsgTag["screen"]                   = "_updateScreen"
+MsgTag["balance"]                   = "_runBalancer"
 
+---
 ContainerVisibleGrid               = 7 * 6
 
 --- test stuff is plugged in
@@ -53,8 +54,6 @@ OutputBinContents = {}
 Screen.activate()
 Screen.setCenteredText(msgTitleAndVersion .. "\n\n" .. OutputBin.getName() .. "\n\n BOOTING")
 
-TickTimeSeconds = 32
-unit.setTimer(MsgTag["inBin"], TickTimeSeconds * 0.1)
-unit.setTimer(MsgTag["outBin"], TickTimeSeconds * 0.2)
-unit.setTimer(MsgTag["screen"], TickTimeSeconds * 1.2)
+TickTimeSeconds = 34.5
+BootTimers()
 ---eof---
