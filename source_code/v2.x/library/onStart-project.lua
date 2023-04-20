@@ -1,11 +1,12 @@
 ---
 TimersAreRunning = false
+
 function BootTimers()
   unit.setTimer(MsgTag["inBin"], TickTimeSeconds * 0.1)
   unit.setTimer(MsgTag["outBin"], TickTimeSeconds * 0.2)
-  unit.setTimer(MsgTag["balance"], TickTimeSeconds * 1.0)
-  unit.setTimer(MsgTag["screen"], TickTimeSeconds * 1.2)
-  unit.setTimer(MsgTag["default"], TickTimeSeconds * 5.5)
+  unit.setTimer(MsgTag["screen"], TickTimeSeconds * 0.3)
+  --- unit.setTimer(MsgTag["balance"], TickTimeSeconds * 1.0)
+  --- unit.setTimer(MsgTag["default"], TickTimeSeconds * 5.5)
   TimersAreRunning = true
 end --- function BootTimers()
 
@@ -14,8 +15,8 @@ function StopAllTimers()
   unit.stopTimer(MsgTag["screen"])
   unit.stopTimer(MsgTag["inBin"])
   unit.stopTimer(MsgTag["outBin"])
-  unit.stopTimer(MsgTag["balance"])
-  unit.stopTimer(MsgTag["default"])
+  --- unit.stopTimer(MsgTag["balance"])
+  --- unit.stopTimer(MsgTag["default"])
   TimersAreRunning = false
 end --- function StopAllTimers()
 
@@ -99,8 +100,6 @@ function RunBalancer()
   StatusMessageTable["XFR_Data"]     = { material = "Unknown", quantity = -1 }
   StatusMessageTable["comment"]      = "RunBalancer running"
 
-  XFRU.stop()
-
   if #InputBinContents == 0
       or #OutputBinContents == 0
   then
@@ -141,6 +140,7 @@ function RunBalancer()
 
     outputBinOreLitresRequired = RoundOff(outputBinOreLitresRequired)
     if outputBinOreLitresRequired > 0 then
+      XFRU.stop()
       XFRU.setOutput(inputBinOreID)
       XFRU.startMaintain(OutputBinBigChunk)
 
@@ -161,14 +161,40 @@ function UpdateBalancerStatusInfo()
   local balancerStatus = XFRU.getState()
   StatusMessageTable["XFRUL_Status"] = StatusCodeTable[balancerStatus].state
 
-  if balancerStatus == UNIT_WORKING
-      and TimersAreRunning then
-    StopAllTimers()
+  if balancerStatus == UNIT_WORKING then
+    StatusJobNotTriggered         = false
+    StatusMessageTable["comment"] = "Job length can be several minutes"
+    unit.stopTimer(MsgTag["inBin"])
+    unit.stopTimer(MsgTag["outBin"])
+    unit.setTimer(MsgTag["inBin"], TickTimeSeconds * 2.1)
+    unit.setTimer(MsgTag["outBin"], TickTimeSeconds * 2.2)
   end
 
-  if balancerStatus ~= UNIT_WORKING
-      and not TimersAreRunning then
-    BootTimers()
+  if balancerStatus == UNIT_JAMMED then
+    StatusJobNotTriggered         = false
+    StatusMessageTable["comment"] = "Not enough IN-BIN Material"
+    unit.stopTimer(MsgTag["inBin"])
+    unit.stopTimer(MsgTag["outBin"])
+    unit.setTimer(MsgTag["inBin"], TickTimeSeconds * 0.1)
+    unit.setTimer(MsgTag["outBin"], TickTimeSeconds * 1.2)
+  end
+
+  if balancerStatus == UNIT_WAITING then
+    StatusJobNotTriggered         = false
+    StatusMessageTable["comment"] = "Sufficient OUT-BIN Material"
+    unit.stopTimer(MsgTag["inBin"])
+    unit.stopTimer(MsgTag["outBin"])
+    unit.setTimer(MsgTag["outBin"], TickTimeSeconds * 0.1)
+    unit.setTimer(MsgTag["inBin"], TickTimeSeconds * 1.2)
+  end
+
+  if balancerStatus == UNIT_STOPPED then
+    StatusJobNotTriggered         = false
+    StatusMessageTable["comment"] = "No task given."
+    unit.stopTimer(MsgTag["inBin"])
+    unit.stopTimer(MsgTag["outBin"])
+    unit.setTimer(MsgTag["outBin"], TickTimeSeconds * 0.1)
+    unit.setTimer(MsgTag["inBin"], TickTimeSeconds * 1.2)
   end
 
   return
