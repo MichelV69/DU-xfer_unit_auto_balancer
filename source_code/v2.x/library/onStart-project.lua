@@ -1,5 +1,6 @@
 ---
 TimersAreRunning = false
+NothingToDoDelaySeconds = 0
 
 function BootTimers()
   unit.setTimer(MsgTag["inBin"], TickTimeSeconds * 0.1)
@@ -164,10 +165,11 @@ function UpdateBalancerStatusInfo()
   if balancerStatus == UNIT_WORKING then
     StatusJobNotTriggered         = false
     StatusMessageTable["comment"] = "Job length can be several minutes"
+    NothingToDoDelaySeconds = 0
     unit.stopTimer(MsgTag["inBin"])
     unit.stopTimer(MsgTag["outBin"])
-    unit.setTimer(MsgTag["inBin"], TickTimeSeconds * 2.1)
-    unit.setTimer(MsgTag["outBin"], TickTimeSeconds * 2.2)
+    unit.setTimer(MsgTag["inBin"], TickTimeSeconds * 2.1 + NothingToDoDelaySeconds)
+    unit.setTimer(MsgTag["outBin"], TickTimeSeconds * 2.2 + NothingToDoDelaySeconds)
   end
 
   if balancerStatus == UNIT_JAMMED then
@@ -175,26 +177,28 @@ function UpdateBalancerStatusInfo()
     StatusMessageTable["comment"] = "Not enough IN-BIN Material"
     unit.stopTimer(MsgTag["inBin"])
     unit.stopTimer(MsgTag["outBin"])
-    unit.setTimer(MsgTag["inBin"], TickTimeSeconds * 0.1)
-    unit.setTimer(MsgTag["outBin"], TickTimeSeconds * 1.2)
+    unit.setTimer(MsgTag["inBin"], TickTimeSeconds * 0.1 + NothingToDoDelaySeconds)
+    unit.setTimer(MsgTag["outBin"], TickTimeSeconds * 1.2 + NothingToDoDelaySeconds)
   end
 
   if balancerStatus == UNIT_WAITING then
     StatusJobNotTriggered         = false
     StatusMessageTable["comment"] = "Sufficient OUT-BIN Material"
+    NothingToDoDelaySeconds = NothingToDoDelaySeconds + 1
     unit.stopTimer(MsgTag["inBin"])
     unit.stopTimer(MsgTag["outBin"])
-    unit.setTimer(MsgTag["outBin"], TickTimeSeconds * 0.1)
-    unit.setTimer(MsgTag["inBin"], TickTimeSeconds * 1.2)
+    unit.setTimer(MsgTag["outBin"], TickTimeSeconds * 0.1 + NothingToDoDelaySeconds)
+    unit.setTimer(MsgTag["inBin"], TickTimeSeconds * 1.2 + NothingToDoDelaySeconds)
   end
 
   if balancerStatus == UNIT_STOPPED then
     StatusJobNotTriggered         = false
     StatusMessageTable["comment"] = "No task given."
+    NothingToDoDelaySeconds = NothingToDoDelaySeconds + 1
     unit.stopTimer(MsgTag["inBin"])
     unit.stopTimer(MsgTag["outBin"])
-    unit.setTimer(MsgTag["outBin"], TickTimeSeconds * 0.1)
-    unit.setTimer(MsgTag["inBin"], TickTimeSeconds * 1.2)
+    unit.setTimer(MsgTag["outBin"], TickTimeSeconds * 0.1 + NothingToDoDelaySeconds)
+    unit.setTimer(MsgTag["inBin"], TickTimeSeconds * 1.2 + NothingToDoDelaySeconds)
   end
 
   return

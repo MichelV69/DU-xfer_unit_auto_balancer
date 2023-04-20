@@ -2,8 +2,8 @@
 wss_software = {}
 wss_software.id = "xfer_unit_auto_scanner"
 wss_software.title = "Transfer Unit Auto-Scanner / Auto-Balancer"
-wss_software.version = "2.0.0e"
-wss_software.revision = "20 APR 2023 14h43 AST"
+wss_software.version = "2.0.0f"
+wss_software.revision = "20 APR 2023 17h01 AST"
 wss_software.author = "Michel Vaillancourt <902pe_gaming@wolfstar.ca>"
 
 system.print("\n --------------- \n")
